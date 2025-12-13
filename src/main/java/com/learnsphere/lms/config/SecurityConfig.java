@@ -19,6 +19,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/users/register").permitAll() // Allow registration without authentication
                 .requestMatchers("/api/users/all").permitAll() // Allow getting all users (for now)
+                .requestMatchers("/api/courses/**").permitAll() // Allow course endpoints
                 .anyRequest().authenticated() // All other requests require authentication
             );
         
