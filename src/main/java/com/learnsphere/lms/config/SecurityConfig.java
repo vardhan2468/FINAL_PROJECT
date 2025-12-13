@@ -15,14 +15,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for REST API
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/register").permitAll() // Allow registration without authentication
-                .requestMatchers("/api/users/all").permitAll() // Allow getting all users (for now)
-                .requestMatchers("/api/courses/**").permitAll() // Allow course endpoints
-                .anyRequest().authenticated() // All other requests require authentication
-            );
-        
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for REST API
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/users/register").permitAll() // Allow registration without authentication
+                        .requestMatchers("/api/users/all").permitAll() // Allow getting all users (for now)
+                        .requestMatchers("/api/courses/**").permitAll() // Allow course endpoints
+                        .requestMatchers("/api/enrollments/**").permitAll() // Allow enrollment endpoints
+                        .anyRequest().authenticated() // All other requests require authentication
+                );
+
         return http.build();
     }
 
