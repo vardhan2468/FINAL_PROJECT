@@ -52,12 +52,12 @@
                 });
                 
                 if (response.ok) {
-                    const data = await response.json();
+                    const result = await response.json();
                     
-                    // Store JWT token in localStorage
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('email', data.email);
-                    localStorage.setItem('role', data.role);
+                    // Store JWT token in localStorage (using ApiResponse structure)
+                    localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('email', result.data.email);
+                    localStorage.setItem('role', result.data.role);
                     
                     // Redirect to courses.html
                     window.location.href = 'courses.html';
