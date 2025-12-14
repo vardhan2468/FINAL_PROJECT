@@ -21,6 +21,9 @@ public class Course {
     @Column(name = "instructor_name")
     private String instructorName;
 
+    @Column(name = "photo_url")
+    private String photoUrl;
+
     // Default constructor
     public Course() {
     }
@@ -32,12 +35,13 @@ public class Course {
         this.instructorName = instructorName;
     }
 
-    // Constructor with all fields
-    public Course(Long id, String title, String description, String instructorName) {
+    // Constructor with all fields including photo
+    public Course(Long id, String title, String description, String instructorName, String photoUrl) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.instructorName = instructorName;
+        this.photoUrl = photoUrl;
     }
 
     // Getters and Setters
@@ -73,6 +77,14 @@ public class Course {
         this.instructorName = instructorName;
     }
 
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
     @Override
     public String toString() {
         return "Course{" +
@@ -80,6 +92,7 @@ public class Course {
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", instructorName='" + instructorName + '\'' +
+                ", photoUrl='" + photoUrl + '\'' +
                 '}';
     }
 }

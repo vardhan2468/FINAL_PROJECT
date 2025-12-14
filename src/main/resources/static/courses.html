@@ -41,6 +41,11 @@
                             <label for="instructor-name">Instructor Name</label>
                             <input type="text" id="instructor-name" name="instructorName" required>
                         </div>
+                        <div class="form-group">
+                            <label for="photo-url">Course Photo URL</label>
+                            <input type="url" id="photo-url" name="photoUrl" placeholder="https://example.com/image.jpg">
+                            <small style="color: #666; font-size: 12px;">Enter a valid image URL or leave blank for default</small>
+                        </div>
                         <button type="submit" class="btn btn-primary">Add Course</button>
                     </form>
                 </div>
@@ -164,18 +169,25 @@
             
             coursesList.innerHTML = courses.map(course => `
                 <div class="course-card">
-                    <h3>${course.title}</h3>
-                    <p>${course.description}</p>
-                    <p class="instructor">Instructor: ${course.instructorName}</p>
-                    ${userRole === 'STUDENT' ? 
-                        `<button onclick="enrollInCourse(${course.id})" class="btn btn-success">Enroll</button>` 
-                        : ''}
-                    ${userRole === 'ADMIN' ? 
-                        `<div class="admin-actions">
-                            <button onclick="editCourse(${course.id})" class="btn btn-secondary">Edit</button>
-                            <button onclick="deleteCourse(${course.id})" class="btn btn-danger">Delete</button>
-                        </div>` 
-                        : ''}
+                    <div class="course-image">
+                        <img src="${course.photoUrl || 'https://via.placeholder.com/400x250?text=Course+Image'}" 
+                             alt="${course.title}" 
+                             onerror="this.src='https://via.placeholder.com/400x250?text=Image+Not+Found'">
+                    </div>
+                    <div class="course-content">
+                        <h3>${course.title}</h3>
+                        <p>${course.description}</p>
+                        <p class="instructor">Instructor: ${course.instructorName}</p>
+                        ${userRole === 'STUDENT' ? 
+                            `<button onclick="enrollInCourse(${course.id})" class="btn btn-success">Enroll</button>` 
+                            : ''}
+                        ${userRole === 'ADMIN' ? 
+                            `<div class="admin-actions">
+                                <button onclick="editCourse(${course.id})" class="btn btn-secondary">Edit</button>
+                                <button onclick="deleteCourse(${course.id})" class="btn btn-danger">Delete</button>
+                            </div>` 
+                            : ''}
+                    </div>
                 </div>
             `).join('');
         }
@@ -185,10 +197,12 @@
             event.preventDefault();
             const token = localStorage.getItem('token');
             
+            const photoUrl = document.getElementById('photo-url').value.trim();
             const formData = {
                 title: document.getElementById('course-title').value,
                 description: document.getElementById('course-description').value,
-                instructorName: document.getElementById('instructor-name').value
+                instructorName: document.getElementById('instructor-name').value,
+                photoUrl: photoUrl || 'https://via.placeholder.com/400x250?text=Course+Image'
             };
             
             try {
@@ -274,6 +288,7 @@
                     document.getElementById('course-title').value = course.title;
                     document.getElementById('course-description').value = course.description;
                     document.getElementById('instructor-name').value = course.instructorName;
+                    document.getElementById('photo-url').value = course.photoUrl || '';
                     
                     // Change form to update mode
                     const form = document.getElementById('course-form');
@@ -315,10 +330,12 @@
             event.preventDefault();
             const token = localStorage.getItem('token');
             
+            const photoUrl = document.getElementById('photo-url').value.trim();
             const formData = {
                 title: document.getElementById('course-title').value,
                 description: document.getElementById('course-description').value,
-                instructorName: document.getElementById('instructor-name').value
+                instructorName: document.getElementById('instructor-name').value,
+                photoUrl: photoUrl || 'https://via.placeholder.com/400x250?text=Course+Image'
             };
             
             try {
