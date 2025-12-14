@@ -307,6 +307,29 @@ body {
     width: 100%;
 }
 
+/* Admin Actions */
+.admin-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.admin-actions .btn {
+    width: auto;
+    flex: 1;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #333;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
 /* Loading State */
 .loading {
     text-align: center;

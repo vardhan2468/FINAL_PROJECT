@@ -1,5 +1,6 @@
 package com.learnsphere.lms.service;
 
+import com.learnsphere.lms.exception.ResourceNotFoundException;
 import com.learnsphere.lms.model.User;
 import com.learnsphere.lms.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -62,6 +63,18 @@ public class UserService {
     }
 
     /**
+     * Fetch a user by their ID (throws exception if not found)
+     * 
+     * @param id the user ID
+     * @return the user if found
+     * @throws ResourceNotFoundException if user not found
+     */
+    public User getUserByIdOrThrow(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    }
+
+    /**
      * Check if a user exists with the given email
      * 
      * @param email the email address to check
@@ -75,8 +88,12 @@ public class UserService {
      * Delete a user by ID
      * 
      * @param id the user ID to delete
+     * @throws ResourceNotFoundException if user not found
      */
     public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("User", "id", id);
+        }
         userRepository.deleteById(id);
     }
 

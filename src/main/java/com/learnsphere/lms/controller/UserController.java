@@ -1,5 +1,6 @@
 package com.learnsphere.lms.controller;
 
+import com.learnsphere.lms.dto.ApiResponse;
 import com.learnsphere.lms.model.User;
 import com.learnsphere.lms.service.UserService;
 import jakarta.validation.Valid;
@@ -24,27 +25,30 @@ public class UserController {
      * Register a new user
      * 
      * @param user the user to register
-     * @return ResponseEntity with the saved user and HTTP status
+     * @return ResponseEntity with standardized API response
      */
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
+    public ResponseEntity<ApiResponse<User>> registerUser(@Valid @RequestBody User user) {
         // Check if user already exists
         if (userService.existsByEmail(user.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error("User with this email already exists"));
         }
 
         User savedUser = userService.saveUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("User registered successfully", savedUser));
     }
 
     /**
      * Get all users
      * 
-     * @return ResponseEntity with list of all users
+     * @return ResponseEntity with standardized API response
      */
     @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
         List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(
+                ApiResponse.success("Users retrieved successfully", users));
     }
 }

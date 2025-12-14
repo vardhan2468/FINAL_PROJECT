@@ -1,5 +1,6 @@
 package com.learnsphere.lms.controller;
 
+import com.learnsphere.lms.dto.ApiResponse;
 import com.learnsphere.lms.security.CustomUserDetailsService;
 import com.learnsphere.lms.security.JwtUtil;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,10 @@ public class AuthController {
      * Login endpoint - authenticate user and return JWT token
      * 
      * @param loginRequest login credentials (email and password)
-     * @return ResponseEntity with JWT token or error message
+     * @return ResponseEntity with standardized API response
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody LoginRequest loginRequest) {
         try {
             // Authenticate user
             authenticationManager.authenticate(
@@ -58,23 +59,21 @@ public class AuthController {
             // Generate JWT token
             String token = jwtUtil.generateToken(userDetails.getUsername(), role);
 
-            // Prepare response
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", token);
-            response.put("email", userDetails.getUsername());
-            response.put("role", role);
-            response.put("message", "Login successful");
+            // Prepare response data
+            Map<String, Object> authData = new HashMap<>();
+            authData.put("token", token);
+            authData.put("email", userDetails.getUsername());
+            authData.put("role", role);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponse.success("Login successful", authData));
 
         } catch (BadCredentialsException e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Invalid email or password");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Invalid email or password"));
         } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Authentication failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Authentication failed: " + e.getMessage()));
         }
     }
 

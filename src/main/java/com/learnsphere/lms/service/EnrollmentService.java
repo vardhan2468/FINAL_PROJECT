@@ -1,5 +1,6 @@
 package com.learnsphere.lms.service;
 
+import com.learnsphere.lms.exception.DuplicateEnrollmentException;
 import com.learnsphere.lms.model.Course;
 import com.learnsphere.lms.model.Enrollment;
 import com.learnsphere.lms.model.User;
@@ -24,27 +25,28 @@ public class EnrollmentService {
      * Enroll a user into a course
      * Prevents duplicate enrollments
      * 
-     * @param user the user to enroll
+     * @param user   the user to enroll
      * @param course the course to enroll in
      * @return the saved enrollment
-     * @throws IllegalStateException if user is already enrolled in the course
+     * @throws DuplicateEnrollmentException if user is already enrolled in the
+     *                                      course
      */
     public Enrollment enrollUser(User user, Course course) {
         // Check if user is already enrolled
         List<Enrollment> existingEnrollments = enrollmentRepository.findByUserId(user.getId());
         boolean alreadyEnrolled = existingEnrollments.stream()
                 .anyMatch(e -> e.getCourse().getId().equals(course.getId()));
-        
+
         if (alreadyEnrolled) {
-            throw new IllegalStateException("User is already enrolled in this course");
+            throw new DuplicateEnrollmentException(user.getId(), course.getId());
         }
-        
+
         // Create new enrollment
         Enrollment enrollment = new Enrollment();
         enrollment.setUser(user);
         enrollment.setCourse(course);
         enrollment.setEnrolledAt(LocalDateTime.now());
-        
+
         return enrollmentRepository.save(enrollment);
     }
 

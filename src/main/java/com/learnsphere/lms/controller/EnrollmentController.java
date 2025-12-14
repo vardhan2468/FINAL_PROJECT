@@ -1,5 +1,6 @@
 package com.learnsphere.lms.controller;
 
+import com.learnsphere.lms.dto.ApiResponse;
 import com.learnsphere.lms.model.Course;
 import com.learnsphere.lms.model.Enrollment;
 import com.learnsphere.lms.model.User;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/enrollments")
@@ -34,51 +34,35 @@ public class EnrollmentController {
      * Enroll a user into a course
      * 
      * @param request enrollment request containing userId and courseId
-     * @return ResponseEntity with enrollment details
+     * @return ResponseEntity with standardized API response
      */
     @PostMapping("/enroll")
-    public ResponseEntity<?> enrollUser(@RequestBody EnrollmentRequest request) {
-        // Validate user exists
-        Optional<User> user = userService.getUserById(request.getUserId());
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("User not found with id: " + request.getUserId());
-        }
+    public ResponseEntity<ApiResponse<Enrollment>> enrollUser(@RequestBody EnrollmentRequest request) {
+        // Get user and course (will throw ResourceNotFoundException if not found)
+        User user = userService.getUserByIdOrThrow(request.getUserId());
+        Course course = courseService.getCourseById(request.getCourseId());
 
-        // Validate course exists
-        Optional<Course> course = courseService.getCourseById(request.getCourseId());
-        if (course.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Course not found with id: " + request.getCourseId());
-        }
-
-        try {
-            // Enroll user
-            Enrollment enrollment = enrollmentService.enrollUser(user.get(), course.get());
-            return new ResponseEntity<>(enrollment, HttpStatus.CREATED);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(e.getMessage());
-        }
+        // Enroll user (will throw DuplicateEnrollmentException if already enrolled)
+        Enrollment enrollment = enrollmentService.enrollUser(user, course);
+        return new ResponseEntity<>(
+                ApiResponse.success("Enrollment successful", enrollment),
+                HttpStatus.CREATED);
     }
 
     /**
      * Get all courses enrolled by a user
      * 
      * @param userId the user ID
-     * @return ResponseEntity with list of courses
+     * @return ResponseEntity with standardized API response
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getCoursesEnrolledByUser(@PathVariable Long userId) {
-        // Validate user exists
-        Optional<User> user = userService.getUserById(userId);
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("User not found with id: " + userId);
-        }
+    public ResponseEntity<ApiResponse<List<Course>>> getCoursesEnrolledByUser(@PathVariable Long userId) {
+        // Validate user exists (will throw ResourceNotFoundException if not found)
+        userService.getUserByIdOrThrow(userId);
 
         List<Course> courses = enrollmentService.getCoursesEnrolledByUser(userId);
-        return ResponseEntity.ok(courses);
+        return ResponseEntity.ok(
+                ApiResponse.success("Enrolled courses retrieved successfully", courses));
     }
 
     /**

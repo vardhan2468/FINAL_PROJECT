@@ -15,8 +15,27 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "MySecretKeyForJWTTokenGenerationAndValidation2024LMS";
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours
+    // PRODUCTION: Load from environment variable
+    private final String SECRET_KEY;
+    private final long EXPIRATION_TIME;
+
+    /**
+     * Constructor with environment-based configuration
+     * 
+     * @param secretKey      JWT secret from environment (default for dev only)
+     * @param expirationTime JWT expiration time in milliseconds
+     */
+    public JwtUtil(
+            @org.springframework.beans.factory.annotation.Value("${jwt.secret:MySecretKeyForJWTTokenGenerationAndValidation2024LMS}") String secretKey,
+            @org.springframework.beans.factory.annotation.Value("${jwt.expiration:36000000}") long expirationTime) {
+        this.SECRET_KEY = secretKey;
+        this.EXPIRATION_TIME = expirationTime;
+
+        // Validate secret key length for security
+        if (secretKey.length() < 32) {
+            throw new IllegalArgumentException("JWT secret key must be at least 32 characters for security");
+        }
+    }
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
@@ -26,7 +45,7 @@ public class JwtUtil {
      * Generate JWT token for a user
      * 
      * @param username the username
-     * @param role the user role
+     * @param role     the user role
      * @return JWT token string
      */
     public String generateToken(String username, String role) {
@@ -38,7 +57,7 @@ public class JwtUtil {
     /**
      * Create JWT token with claims and subject
      * 
-     * @param claims the claims to include
+     * @param claims  the claims to include
      * @param subject the subject (username)
      * @return JWT token string
      */
@@ -85,7 +104,7 @@ public class JwtUtil {
     /**
      * Extract a specific claim from token
      * 
-     * @param token the JWT token
+     * @param token          the JWT token
      * @param claimsResolver function to extract the claim
      * @return the extracted claim
      */
@@ -121,7 +140,7 @@ public class JwtUtil {
     /**
      * Validate JWT token
      * 
-     * @param token the JWT token
+     * @param token    the JWT token
      * @param username the username to validate against
      * @return true if valid, false otherwise
      */
