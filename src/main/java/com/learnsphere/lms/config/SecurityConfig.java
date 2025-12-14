@@ -39,7 +39,8 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.deny()) // Prevent clickjacking
                         .xssProtection(xss -> xss.disable()) // XSS protection handled by browser
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'")) // CSP
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:")) // CSP
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Public resources
