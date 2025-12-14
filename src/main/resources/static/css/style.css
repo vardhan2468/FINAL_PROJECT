@@ -237,34 +237,10 @@ body {
     margin-top: 20px;
 }
 
-.course-card {
-    background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 20px;
-    transition: all 0.3s;
-}
-
-.course-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    border-color: #667eea;
-}
-
-.course-card h3 {
-    color: #667eea;
-    margin-bottom: 10px;
-    font-size: 20px;
-}
-
-.course-card p {
-    color: #666;
-    margin-bottom: 10px;
-    line-height: 1.5;
 /* Courses Grid Layout */
 .courses-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
     margin-top: 1.5rem;
 }
