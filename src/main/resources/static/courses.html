@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses - LMS</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1>LMS - Learning Management System</h1>
+            <div class="nav-right">
+                <span id="user-info" class="user-info"></span>
+                <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="content-container">
+            <h2>Available Courses</h2>
+            
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <div id="success-message" class="success-message" style="display: none;"></div>
+            
+            <!-- Courses List -->
+            <div id="courses-list" class="courses-grid">
+                <p class="loading">Loading courses...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Immediately check authentication before page loads
+        (function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+        })();
+        
+        let userRole = '';
+        let currentUserId = null;
+        
+        // Validate token by making an API call
+        async function validateToken() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                redirectToLogin();
+                return false;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/courses/all', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    // Token is invalid or expired
+                    redirectToLogin();
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Token validation error:', error);
+                return false;
+            }
+        }
+        
+        // Redirect to login and clear storage
+        function redirectToLogin() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('email');
+            localStorage.removeItem('role');
+            window.location.href = 'index.html';
+        }
+        
+        // Check authentication and load data
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Validate token first
+            const isValid = await validateToken();
+            if (!isValid) {
+                return;
+            }
+            
+            const email = localStorage.getItem('email');
+            userRole = localStorage.getItem('role');
+            
+            if (email && userRole) {
+                document.getElementById('user-info').textContent = `${email} (${userRole})`;
+            }
+            
+            loadCourses();
+        });
+        
+        // Fetch all courses from API
+        async function loadCourses() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/courses/all', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const courses = await response.json();
+                    displayCourses(courses);
+                } else if (response.status === 401 || response.status === 403) {
+                    // Token expired or invalid
+                    redirectToLogin();
+                } else {
+                    showError('Failed to load courses');
+                }
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                showError('Failed to connect to server');
+            }
+        }
+        
+        // Display courses as cards
+        function displayCourses(courses) {
+            const coursesList = document.getElementById('courses-list');
+            
+            if (courses.length === 0) {
+                coursesList.innerHTML = '<p class="loading">No courses available</p>';
+                return;
+            }
+            
+            coursesList.innerHTML = courses.map(course => `
+                <div class="course-card">
+                    <h3>${course.title}</h3>
+                    <p>${course.description}</p>
+                    <p class="instructor">Instructor: ${course.instructorName}</p>
+                    ${userRole === 'STUDENT' ? 
+                        `<button onclick="enrollInCourse(${course.id})" class="btn btn-success">Enroll</button>` 
+                        : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Enroll in course (STUDENT only)
+        async function enrollInCourse(courseId) {
+            const token = localStorage.getItem('token');
+            const email = localStorage.getItem('email');
+            
+            try {
+                // First, get user ID
+                if (!currentUserId) {
+                    const userResponse = await fetch('http://localhost:8080/api/users/all', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (userResponse.ok) {
+                        const users = await userResponse.json();
+                        const user = users.find(u => u.email === email);
+                        if (user) {
+                            currentUserId = user.id;
+                        }
+                    } else if (userResponse.status === 401 || userResponse.status === 403) {
+                        redirectToLogin();
+                        return;
+                    }
+                }
+                
+                if (!currentUserId) {
+                    showError('User not found');
+                    return;
+                }
+                
+                // Enroll in course
+                const enrollResponse = await fetch('http://localhost:8080/api/enrollments/enroll', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        courseId: courseId
+                    })
+                });
+                
+                if (enrollResponse.ok) {
+                    showSuccess('Successfully enrolled in course!');
+                } else if (enrollResponse.status === 409) {
+                    showError('You are already enrolled in this course');
+                } else if (enrollResponse.status === 401 || enrollResponse.status === 403) {
+                    // Token expired or no permission
+                    if (enrollResponse.status === 401) {
+                        redirectToLogin();
+                    } else {
+                        showError('You do not have permission to enroll');
+                    }
+                } else {
+                    showError('Failed to enroll in course');
+                }
+            } catch (error) {
+                console.error('Error enrolling:', error);
+                showError('Failed to connect to server');
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('email');
+            localStorage.removeItem('role');
+            window.location.href = 'index.html';
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            const successDiv = document.getElementById('success-message');
+            successDiv.style.display = 'none';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.style.display = 'none';
+            
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
