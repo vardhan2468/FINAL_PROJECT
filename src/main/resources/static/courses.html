@@ -402,7 +402,8 @@
                     });
                     
                     if (userResponse.ok) {
-                        const users = await userResponse.json();
+                        const result = await userResponse.json();
+                        const users = result.data || result;
                         const user = users.find(u => u.email === email);
                         if (user) {
                             currentUserId = user.id;
