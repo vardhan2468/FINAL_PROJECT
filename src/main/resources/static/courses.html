@@ -144,8 +144,8 @@
                 });
                 
                 if (response.ok) {
-                    const courses = await response.json();
-                    displayCourses(courses);
+                    const result = await response.json();
+                    displayCourses(result.data || result);
                 } else if (response.status === 401 || response.status === 403) {
                     // Token expired or invalid
                     redirectToLogin();
@@ -282,7 +282,8 @@
                 });
                 
                 if (response.ok) {
-                    const course = await response.json();
+                    const result = await response.json();
+                    const course = result.data || result;
                     
                     // Populate form with existing data
                     document.getElementById('course-title').value = course.title;
