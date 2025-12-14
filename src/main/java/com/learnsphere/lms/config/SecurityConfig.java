@@ -42,6 +42,10 @@ public class SecurityConfig {
                         .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'")) // CSP
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Public resources
+                        .requestMatchers("/", "/index.html", "/register.html", "/courses.html").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        // API endpoints
                         .requestMatchers("/api/auth/**").permitAll() // Allow authentication endpoints
                         .requestMatchers("/api/users/register").permitAll() // Allow registration
                         .requestMatchers(HttpMethod.POST, "/api/courses/add").hasRole("ADMIN") // Only ADMIN can add
